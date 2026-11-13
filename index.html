@@ -1,0 +1,580 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Arun Kumar Portfolio</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Kaushan+Script&display=swap">
+<style>
+/* Harukaze Solid (Nug's Project) for AK and the big headings */
+@font-face{font-family:"Harukaze";src:local("Harukaze"),url("fonts/Harukaze.ttf") format("truetype"),url("fonts/Harukaze.otf") format("opentype");font-display:swap}
+/* Scroll scrubs the 30s film on a fixed canvas. Content lives in 7 timed "chapters";
+   each one sits in the part of the frame where Arun's face is NOT (left / right / bottom),
+   and fades in only while those frames are on screen. */
+:root{
+  --ink:#0E0A0D; --paper:#F2ECEA; --mute:#B4A6A8; --line:rgba(242,236,234,.16);
+  --red:#FF2E3A; --blue:#3DA9FF; --accent:var(--red);
+  --f-head:"Bricolage Grotesque",system-ui,sans-serif;
+  --f-body:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-brush:"Harukaze","Kaushan Script",cursive;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+  --gx:max(28px,4vw); color-scheme:dark;
+}
+body.volt{--accent:var(--blue)}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--ink)}
+body{color:var(--paper);font-family:var(--f-body);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit}
+a:focus-visible,button:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
+
+#film{position:fixed;inset:0;width:100vw;height:100lvh;display:block;z-index:0;background:var(--ink)}
+.vig{position:fixed;inset:0;z-index:1;pointer-events:none;
+  background:linear-gradient(180deg,rgba(14,10,13,.6) 0%,transparent 16%,transparent 78%,rgba(14,10,13,.7) 100%)}
+/* side shade that follows the active chapter, so text never sits on a bright frame */
+.shade{position:fixed;inset:0;z-index:2;pointer-events:none;opacity:0;transition:opacity .5s ease}
+.shade.l{background:linear-gradient(90deg,rgba(14,10,13,.82) 0%,rgba(14,10,13,.5) 22%,transparent 38%)}
+.shade.r{background:linear-gradient(270deg,rgba(14,10,13,.82) 0%,rgba(14,10,13,.5) 22%,transparent 38%)}
+.shade.b{background:linear-gradient(0deg,rgba(14,10,13,.88) 0%,rgba(14,10,13,.55) 30%,transparent 52%)}
+.shade.on{opacity:1}
+
+/* top bar */
+.bar{position:fixed;top:0;left:0;right:0;z-index:20;display:flex;justify-content:space-between;align-items:center;
+  padding:calc(20px + env(safe-area-inset-top,0px)) var(--gx) 20px}
+.mark{font-family:var(--f-head);font-weight:700;font-size:20px;letter-spacing:-.02em;text-decoration:none}
+.mark i{font-style:normal;color:var(--accent);transition:color .4s}
+.bar nav{display:flex;gap:26px;font-family:var(--f-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase}
+.bar nav a{text-decoration:none;color:var(--mute);transition:color .2s}
+.bar nav a:hover,.bar nav a.on{color:var(--paper)}
+.hire{font-family:var(--f-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;text-decoration:none;
+  padding:10px 16px;border:1px solid var(--blue);color:#fff;border-radius:999px;box-shadow:0 0 18px rgba(61,169,255,.35),inset 0 0 12px rgba(61,169,255,.18);transition:box-shadow .25s,background .25s}
+.hire:hover{background:var(--blue);color:var(--ink);box-shadow:0 0 30px rgba(61,169,255,.7)}
+
+/* progress rail */
+.rail{position:fixed;z-index:20;left:var(--gx);right:var(--gx);bottom:calc(18px + env(safe-area-inset-bottom,0px));display:flex;align-items:center;gap:14px;
+  font-family:var(--f-mono);font-size:10px;letter-spacing:.14em;color:var(--mute);font-variant-numeric:tabular-nums;pointer-events:none}
+.rail .t{flex:1;height:1px;background:var(--line);position:relative}
+.rail .t i{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--accent);box-shadow:0 0 8px var(--accent)}
+
+/* chapters */
+.track{position:relative;z-index:5;height:1200vh}
+.ch{position:fixed;z-index:10;opacity:0;visibility:hidden;transform:translateY(16px);
+  transition:opacity .45s ease,transform .6s cubic-bezier(.2,.7,.1,1),visibility 0s linear .45s}
+.ch.on{opacity:1;visibility:visible;transform:none;transition:opacity .45s ease,transform .6s cubic-bezier(.2,.7,.1,1),visibility 0s}
+.ch.left{left:var(--gx);top:50%;translate:0 -50%;width:min(26vw,380px)}
+.ch.right{right:var(--gx);top:50%;translate:0 -50%;width:min(22vw,340px)}
+.ch.bl{left:var(--gx);bottom:calc(64px + env(safe-area-inset-bottom,0px));width:min(46vw,640px)}
+.ch{text-shadow:0 1px 18px rgba(0,0,0,.55)}
+
+.tag{font-family:var(--f-mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin:0 0 16px;display:flex;gap:10px;align-items:center;transition:color .4s}
+.tag::before{content:"";width:18px;height:1px;background:currentColor}
+h1,h2,h3{font-family:var(--f-head);font-weight:700;letter-spacing:-.03em;margin:0;line-height:.95;font-variation-settings:'opsz' 96}
+h1,h2{font-family:var(--f-brush);font-weight:400;letter-spacing:0;font-variation-settings:normal}
+h1{font-size:clamp(64px,7.6vw,140px);line-height:.64;margin-bottom:22px!important}
+h1>span+span{margin-top:.04em}
+/* Harukaze glyphs only fill ~half the em box, so headings get a tight line-height and a little top room */
+h1,h2{padding-top:.08em}
+h1>span{display:block}
+h2{font-size:clamp(54px,5.4vw,92px);line-height:.68;text-wrap:balance;word-spacing:.02em;margin-bottom:20px!important}
+h2 em,h1 em{font-style:normal;color:var(--accent);transition:color .4s,text-shadow .4s}
+body.volt h2 em{text-shadow:0 0 22px rgba(61,169,255,.7)}
+p{margin:0}
+.lede{margin-top:16px;color:var(--paper);font-size:15.5px}
+.sub{margin-top:12px;color:var(--mute);font-size:14.5px}
+.mono{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.14em;text-transform:uppercase}
+
+.hero .mono{margin-top:22px;color:var(--paper)}
+.hero .mono b{color:var(--blue);font-weight:500}
+.hero .where{margin-top:8px;color:var(--mute);font-size:14px}
+.cue{margin-top:30px;color:var(--mute);display:inline-flex;align-items:center;gap:10px}
+.cue::after{content:"";width:1px;height:26px;background:linear-gradient(var(--accent),transparent);animation:drop 1.6s ease-in-out infinite}
+@keyframes drop{0%{transform:scaleY(.2);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}100%{transform:scaleY(.2);transform-origin:bottom}}
+
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:18px 14px;margin-top:22px;padding-top:18px;border-top:1px solid var(--line)}
+.stats b{display:block;font-family:var(--f-head);font-weight:700;font-size:34px;letter-spacing:-.04em;line-height:1}
+.stats span{display:block;font-size:12.5px;color:var(--mute);margin-top:4px;line-height:1.35}
+
+.list{list-style:none;margin:20px 0 0;padding:0;border-top:1px solid var(--line)}
+.list li{padding:13px 0;border-bottom:1px solid var(--line);display:grid;grid-template-columns:34px 1fr;gap:8px}
+.list .n{font-family:var(--f-mono);font-size:11px;color:var(--accent);padding-top:4px;transition:color .4s}
+.list h3{font-size:18px;letter-spacing:-.02em;line-height:1.15}
+.list p{font-size:13.5px;color:var(--mute);margin-top:3px}
+
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chips span{font-family:var(--f-mono);font-size:11px;padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:rgba(14,10,13,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.chips.ai span{border-color:rgba(61,169,255,.45);color:#d4e9ff}
+.chips.craft span{border-color:rgba(255,46,58,.45);color:#ffd6d9}
+.grp{margin-top:18px;color:var(--mute);font-size:10.5px}
+
+.contact h2{font-size:clamp(50px,5.4vw,92px)}
+.mail{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin-top:22px}
+.addr{font-family:var(--f-head);font-weight:500;font-size:clamp(18px,1.7vw,26px);letter-spacing:-.02em;overflow-wrap:anywhere;min-width:0;user-select:all}
+.btn{font-family:var(--f-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;padding:11px 16px;border:1px solid var(--line);background:rgba(14,10,13,.5);color:var(--paper);cursor:pointer;text-decoration:none;border-radius:999px;display:inline-flex;gap:8px;align-items:center;transition:background .2s,color .2s,border-color .2s}
+.btn:hover{border-color:var(--paper)}
+.btn.volt{border-color:var(--blue);background:var(--blue);color:var(--ink);box-shadow:0 0 26px rgba(61,169,255,.55)}
+.btn.wa{border-color:#25D366;color:#d6ffe6}.btn.wa:hover{background:#25D366;color:#06210f;border-color:#25D366}
+.btn.volt:hover{background:#fff;border-color:#fff}
+.ctas{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.foot{margin-top:22px;color:var(--mute);font-size:10px}
+
+#loader{display:none}
+/* letter-by-letter: each letter flies in from a random scatter when its scene starts, and scatters out when it ends */
+.wd{display:inline-block;white-space:nowrap}
+.lt{display:inline-block;opacity:0;transform:translateY(.42em) rotate(var(--r,0)) scale(.92);filter:blur(6px);transform-origin:50% 100%;
+  transition:transform .75s cubic-bezier(.2,.9,.25,1.15) calc(var(--i,0)*24ms),opacity .45s ease calc(var(--i,0)*24ms),filter .55s ease calc(var(--i,0)*24ms)}
+.ch.on .lt{opacity:1;transform:none;filter:none}
+.ch:not(.on) .lt{transform:translateY(-.25em);transition-duration:.3s,.25s,.3s;transition-delay:0s}
+/* ---------- glass cards: only the heading animates letter by letter; cards simply settle in ---------- */
+.ch .tag{opacity:0;transition:opacity .5s}
+/* film slate: blinking REC dot + an italic director's note under each heading */
+.tag .rec{width:7px;height:7px;border-radius:50%;background:var(--red);box-shadow:0 0 10px var(--red);animation:rec 1.2s steps(2,start) infinite}
+.tag:has(.rec)::before{display:none}
+@keyframes rec{to{visibility:hidden}}
+.note{font-family:var(--f-head);font-style:italic;font-size:14.5px;line-height:1.45;color:var(--paper);opacity:0;margin:0 0 18px;padding-left:12px;text-wrap:pretty;border-left:2px solid var(--accent);transition:opacity .6s .35s,border-color .4s;max-width:44ch}
+.ch.on .note{opacity:.85}
+@media (max-width:820px){ .note{font-size:13px;margin-bottom:10px} }
+.ch.on .tag{opacity:1}
+.ch h1,.ch h2{margin-bottom:18px}
+.gc{position:relative;border-radius:16px;padding:16px 18px;color:var(--paper);text-shadow:none;
+  background:linear-gradient(140deg,rgba(255,255,255,.10),rgba(255,255,255,.03) 60%);
+  border:1px solid rgba(255,255,255,.13);backdrop-filter:blur(16px) saturate(140%);-webkit-backdrop-filter:blur(16px) saturate(140%);
+  box-shadow:0 14px 40px rgba(0,0,0,.38),inset 0 1px 0 rgba(255,255,255,.09);
+  translate:0 14px;opacity:0;transition:opacity .6s ease,translate .8s cubic-bezier(.2,.8,.2,1),transform .35s cubic-bezier(.2,.8,.2,1),border-color .3s}
+.ch.on .gc{opacity:1;translate:0 0;transition-delay:calc(.45s + var(--d,0)*90ms),calc(.45s + var(--d,0)*90ms),0s,0s}
+.gc::after{content:"";position:absolute;inset:-1px;border-radius:inherit;padding:1px;pointer-events:none;opacity:0;transition:opacity .3s;
+  background:radial-gradient(220px circle at var(--mx,50%) var(--my,50%),var(--accent),transparent 65%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+.gc::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;transition:opacity .3s;
+  background:radial-gradient(260px circle at var(--mx,50%) var(--my,50%),color-mix(in srgb,var(--accent) 16%,transparent),transparent 70%)}
+.gc:hover::after,.gc:hover::before{opacity:1}
+.stack{display:grid;gap:10px}
+.gc h3{font-family:var(--f-head);font-size:16.5px;font-weight:600;letter-spacing:-.01em;line-height:1.2;margin:0}
+.gc p{font-size:13.5px;line-height:1.5;color:var(--mute);margin-top:5px}
+.gc .k{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);transition:color .4s}
+.ico{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;margin-bottom:10px;
+  background:color-mix(in srgb,var(--accent) 18%,transparent);border:1px solid color-mix(in srgb,var(--accent) 45%,transparent);color:var(--accent);transition:color .4s,background .4s,border-color .4s}
+.ico svg{width:18px;height:18px}
+.row{display:flex;gap:12px;align-items:flex-start}.row .ico{margin:0;flex:none}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.kpis .gc{padding:14px}
+.kpis b{display:block;font-family:var(--f-head);font-size:28px;font-weight:600;letter-spacing:-.04em;line-height:1}
+.kpis span{display:block;font-size:11.5px;color:var(--mute);margin-top:6px;line-height:1.3}
+.pills{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.pills span{font-family:var(--f-mono);font-size:11px;padding:5px 10px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12)}
+.pills.ai span{border-color:rgba(61,169,255,.45);color:#d4e9ff}
+.pills.craft span{border-color:rgba(255,46,58,.45);color:#ffd6d9}
+.tl .yr{font-family:var(--f-mono);font-size:11px;color:var(--accent);letter-spacing:.06em}
+.hero-pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.hero-pills .gc{padding:9px 14px;border-radius:999px;font-family:var(--f-mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase}
+.hero .meta{margin-top:14px;color:var(--mute);font-size:13.5px;opacity:0;transition:opacity .6s .9s}
+.ch.on .meta{opacity:1}
+.contact .gc{padding:20px}
+.contact .addr{display:block;margin-top:4px}
+.contact .mail{margin-top:10px}
+@media (prefers-reduced-motion:reduce){ .lt,.gc,.ch .tag,.hero .meta{opacity:1!important;transform:none!important;translate:none!important;filter:none!important;transition:none!important} }
+/* ---------- cursor ---------- */
+body.alive,body.alive *{cursor:none!important}
+#cdot{position:fixed;left:0;top:0;z-index:40;pointer-events:none;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:#fff;opacity:0;
+  box-shadow:0 0 10px color-mix(in srgb,var(--accent) 70%,transparent);transition:opacity .3s,width .3s cubic-bezier(.2,.9,.3,1.3),height .3s cubic-bezier(.2,.9,.3,1.3),margin .3s cubic-bezier(.2,.9,.3,1.3),background .3s,border .3s}
+body.alive #cdot.on{opacity:1}
+#cdot.hot{width:34px;height:34px;margin:-17px 0 0 -17px;background:transparent;border:1.5px solid var(--accent)}
+#cdot.down{scale:.7}
+#cdot.near{width:16px;height:16px;margin:-8px 0 0 -8px}
+.lt{will-change:translate}
+#glow,#dot{display:none!important}
+/* cursor glow, tinted with the current accent */
+#glow{position:fixed;left:0;top:0;width:520px;height:520px;margin:-260px 0 0 -260px;border-radius:50%;z-index:3;pointer-events:none;opacity:0;transition:opacity .4s,background .5s;
+  background:radial-gradient(closest-side,rgba(255,46,58,.30),rgba(255,46,58,.10) 45%,transparent);mix-blend-mode:screen}
+body.volt #glow{background:radial-gradient(closest-side,rgba(61,169,255,.34),rgba(61,169,255,.12) 45%,transparent)}
+#dot{position:fixed;left:0;top:0;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;z-index:30;pointer-events:none;background:var(--accent);box-shadow:0 0 14px var(--accent);opacity:0;transition:opacity .3s,width .25s,height .25s,margin .25s,background .4s}
+#dot.big{width:46px;height:46px;margin:-23px 0 0 -23px;background:transparent;border:1px solid var(--accent)}
+@media (pointer:fine){ #glow.on,#dot.on{opacity:1} }
+.mag{transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+/* player control while browsing */
+.ctl{position:fixed;z-index:21;right:var(--gx);bottom:calc(40px + env(safe-area-inset-bottom,0px));display:flex;align-items:center;gap:10px;
+  padding:8px 14px 8px 8px;border-radius:999px;border:1px solid var(--line);background:rgba(14,10,13,.6);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:var(--paper);cursor:pointer;font:inherit}
+.ctl b{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--blue);color:var(--ink);box-shadow:0 0 16px rgba(61,169,255,.6)}
+.ctl svg{width:12px;height:12px}
+.ctl[hidden]{display:none}
+@media (max-width:820px){ .ctl{bottom:auto;top:calc(64px + env(safe-area-inset-top,0px))} }
+
+/* mobile: the film is cropped to its centre (where the face is), so every chapter docks to the bottom */
+@media (max-width:820px){
+  :root{--gx:20px}
+  .bar nav{display:none}
+  .ch.left,.ch.right,.ch.bl{left:var(--gx);right:var(--gx);top:auto;bottom:calc(52px + env(safe-area-inset-bottom,0px));translate:none;width:auto}
+  .shade.l,.shade.r,.shade.b{background:none}
+  h1{font-size:14vw}
+  h2{font-size:38px}
+  .gc p{display:none}
+  .stack{gap:6px}.gc{padding:11px 14px}.ico{display:none}.kpis b{font-size:22px}
+  .stats b{font-size:28px}
+}
+@media (max-width:820px) and (max-height:700px){ .chips span{font-size:10px;padding:4px 8px} .grp{margin-top:10px} }
+@media (prefers-reduced-motion:reduce){ .ch,.ch.on{transition:opacity .2s} .cue::after,.play::before{animation:none} }
+</style>
+</head>
+<body>
+<video id="vid" src="film.mp4" muted playsinline preload="auto" aria-hidden="true" style="display:none"></video>
+<div id="cdot" aria-hidden="true"></div>
+<canvas id="film" aria-label="Background film: Arun, an electric racket and one very unlucky mosquito, played by scrolling"></canvas>
+<div class="vig"></div>
+<div class="shade l"></div><div class="shade r"></div><div class="shade b"></div>
+
+<header class="bar">
+  <a class="mark" href="#" data-go="0">AK<i>.</i></a>
+  <nav aria-label="Sections">
+    <a href="#" data-go="1">About</a><a href="#" data-go="2">Services</a><a href="#" data-go="3">Work</a><a href="#" data-go="4">Toolkit</a><a href="#" data-go="5">Experience</a>
+  </nav>
+  <a class="hire" href="#" data-go="6">Hire me</a>
+</header>
+
+<div class="rail mono" aria-hidden="true"><span id="tc">00:00</span><span class="t"><i id="bar"></i></span><span id="cn">01 / 07</span></div>
+<div id="loader" class="mono" aria-live="polite"></div>
+<button class="ctl mono" id="ctl" type="button" hidden><b id="ctlIco"></b><span id="ctlTxt">Play</span></button>
+
+<div class="track" id="track"></div>
+
+<main>
+  <!-- 0 · 0–3.7s · back shot, no face → bottom-left -->
+  <section class="ch bl hero" data-in="0" data-out="3.7" data-shade="b" aria-label="Intro">
+    <p class="tag"><span class="rec" aria-hidden="true"></span>Scene 01 · Lights on</p>
+    <h1><span>Films made with AI.</span><span>Finished <em>by hand.</em></span></h1>
+    <p class="note">Lights down. Lasers on. Rolling.</p>
+    <div class="hero-pills"><span class="gc" style="--d:0">AI Video</span><span class="gc" style="--d:1">Motion Graphics</span><span class="gc" style="--d:2">E-Learning</span></div>
+    <p class="meta">Chennai, India · AI video for French enterprise studios since 2021</p>
+  </section>
+
+    <!-- 1 · 4.0–7.1s · close-ups → narrow right column -->
+  <section class="ch right" data-in="4.0" data-out="7.1" data-shade="r" aria-label="About">
+    <p class="tag"><span class="rec" aria-hidden="true"></span>Scene 02 · Close-up</p>
+    <h2>Meet <em>Arun Kumar.</em></h2>
+    <p class="note">Five years behind the frame. Now the crew is AI, and I'm still the director.</p>
+    <div class="gc" style="--d:0"><p style="margin:0;color:var(--paper)">I direct AI like a film crew: cast the characters, light the scene, cut the story, then finish every frame by hand.</p><p>AI Video, Motion Graphics &amp; E-Learning Developer · Azura Media Solutions × Bombadil Production, France</p></div>
+    <div class="kpis">
+      <div class="gc" style="--d:1"><b>30+</b><span>AI films shipped to French enterprises</span></div>
+      <div class="gc" style="--d:2"><b>15+</b><span>AI tools on speed-dial</span></div>
+      <div class="gc" style="--d:3"><b>5 yrs</b><span>frame by frame</span></div>
+      <div class="gc" style="--d:4"><b>1</b><span>flagship: Thales</span></div>
+    </div>
+  </section>
+
+  <!-- 2 · 8–11.8s · lightning → left column, accent turns blue -->
+  <section class="ch left" data-in="7.6" data-out="11.8" data-shade="l" data-volt aria-label="Services">
+    <p class="tag"><span class="rec" aria-hidden="true"></span>Scene 03 · Power up</p>
+    <h2>Raw AI power, <em>shaped into results.</em></h2>
+    <p class="note">One raised hand, fifteen AI models answering the call.</p>
+    <div class="stack">
+      <div class="gc row" style="--d:0"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="14" height="14" rx="2"/><path d="M17 10l4-2v8l-4-2"/><path d="M8 9l4 3-4 3z" fill="currentColor"/></svg></span><div><h3>AI Video Production</h3><p>I cast, prompt and direct AI actors into training films people actually finish watching.</p></div></div>
+      <div class="gc row" style="--d:1"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17c4 0 5-10 9-10s5 10 9 10"/><circle cx="12" cy="7" r="2" fill="currentColor"/></svg></span><div><h3>Motion Graphics</h3><p>Ideas that move. After Effects and Illustrator work that explains in seconds.</p></div></div>
+      <div class="gc row" style="--d:2"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11v5c3 2 9 2 12 0v-5"/></svg></span><div><h3>E-Learning Development</h3><p>Courses that click back. Storyline 360 interactions, variables and SCORM, built end to end.</p></div></div>
+    </div>
+  </section>
+
+  <!-- 3 · 12.2–15.8s · mosquito + swings → right column -->
+  <section class="ch right" data-in="12.2" data-out="15.8" data-shade="r" aria-label="Selected work">
+    <p class="tag"><span class="rec" aria-hidden="true"></span>Scene 04 · The chase</p>
+    <h2>Problems, <em>caught clean.</em></h2>
+    <p class="note">Every brief has a mosquito: a tight deadline, a tricky ask. I don't miss.</p>
+    <div class="stack">
+      <div class="gc" style="--d:0"><span class="k">Flagship · Thales</span><h3 style="margin-top:6px">AI training modules</h3><p>Started as my side prototype of two AI characters talking. Grew into realistic training modules for Thales.</p></div>
+      <div class="gc" style="--d:1"><span class="k">Bombadil Production</span><h3 style="margin-top:6px">30+ enterprise modules</h3><p>AI video for French enterprise clients, from first prompt to final render.</p></div>
+      <div class="gc" style="--d:2"><span class="k">E-learning</span><h3 style="margin-top:6px">Interactive courses</h3><p>End-to-end Storyline 360 builds, published to SCORM.</p></div>
+    </div>
+  </section>
+
+  <!-- 4 · 16–19.8s · flips + close-ups → right column -->
+  <section class="ch right" data-in="16.0" data-out="19.8" data-shade="r" aria-label="Toolkit">
+    <p class="tag"><span class="rec" aria-hidden="true"></span>Scene 05 · Gear check</p>
+    <h2>The right tool, <em>every time.</em></h2>
+    <p class="note">A different racket for every kind of bug.</p>
+    <div class="stack">
+      <div class="gc" style="--d:0"><span class="k">Lights &amp; camera · generation</span><div class="pills ai"><span>Veo</span><span>Kling</span><span>Seedance</span><span>Runway</span><span>MiniMax</span><span>Wan</span><span>Qwen</span><span>Higgsfield</span></div></div>
+      <div class="gc" style="--d:1"><span class="k">Cast &amp; voice · avatars, audio, writing</span><div class="pills"><span>HeyGen</span><span>Synthesia</span><span>ElevenLabs</span><span>ChatGPT</span><span>Gemini</span><span>Claude</span></div></div>
+      <div class="gc" style="--d:2"><span class="k">Edit bay · craft</span><div class="pills craft"><span>After Effects</span><span>Illustrator</span><span>Storyline 360</span><span>Photoshop</span><span>DaVinci</span><span>Premiere Pro</span></div></div>
+    </div>
+  </section>
+
+  <!-- 5 · 20.2–25.6s · jump + spark → left column -->
+  <section class="ch left" data-in="20.2" data-out="25.6" data-shade="l" aria-label="Experience">
+    <p class="tag"><span class="rec" aria-hidden="true"></span>Scene 06 · The leap</p>
+    <h2>Always <em>levelling up.</em></h2>
+    <p class="note">From 2D keyframes to AI films. Still jumping.</p>
+    <div class="stack tl">
+      <div class="gc row" style="--d:0"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></svg></span><div><span class="yr">2021 – Now</span><h3>Azura Media Solutions</h3><p>AI Video, Motion Graphics &amp; E-Learning Developer. From first storyboard to final SCORM file.</p></div></div>
+      <div class="gc row" style="--d:1"><span class="ico"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.6 6.9L22 9.5l-5.6 4.8L18.2 22 12 18l-6.2 4 1.8-7.7L2 9.5l7.4-.6z"/></svg></span><div><span class="yr">Last 3 years</span><h3>AI video lead</h3><p>Swapped keyframes for prompts, and teaches the team every new AI tool that lands.</p></div></div>
+      <div class="gc row" style="--d:2"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11v5c3 2 9 2 12 0v-5"/></svg></span><div><span class="yr">2021</span><h3>B.S. Computer Science</h3><p>Bharath University, Chennai. The code side of the creative brain.</p></div></div>
+    </div>
+  </section>
+
+  <!-- 6 · 26.2s–end · golden end shot → bottom-left -->
+  <section class="ch bl contact" data-in="26.2" data-out="99" data-shade="b" data-volt aria-label="Contact">
+    <p class="tag"><span class="rec" aria-hidden="true"></span>Final scene · Let's talk</p>
+    <h2>Got a story? <em>Let's shoot it.</em></h2>
+    <p class="note">Training film, product explainer or a full e-learning course. Bring the idea, I'll bring the crew.</p>
+    <div class="gc" style="--d:0;max-width:560px">
+      <span class="k">Open to freelance projects &amp; remote roles</span>
+      <div class="mail"><span class="addr" id="addr">arunkumarak3120@gmail.com</span><button class="btn" id="copy" type="button">Copy</button></div>
+      <div class="ctas">
+        <a class="btn volt" href="https://drive.google.com/drive/folders/1tzESt1OUywvY3xtmac69JoELPW6SVbtM?usp=sharing" target="_blank" rel="noopener">View my reel ↗</a>
+        <a class="btn wa" href="https://wa.me/919543545878?text=Hi%20Arun%2C%20I%20saw%20your%20portfolio" target="_blank" rel="noopener" aria-label="WhatsApp Arun at +91 95435 45878"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 0 0 1.8-1.3 2.2 2.2 0 0 0 .2-1.3c-.1-.1-.3-.2-.5-.3z"/></svg>+91 95435 45878</a>
+        <a class="btn" href="mailto:arunkumarak3120@gmail.com">Email me</a>
+      </div>
+    </div>
+    <p class="foot mono" style="margin-top:14px">Directed, generated &amp; edited by Arun Kumar Karthikeyan · © 2026</p>
+  </section>
+</main>
+
+<script>
+(function(){
+  const N=180, DUR=30;                       // 180 web frames covering 30 s
+  const cvs=document.getElementById('film'), ctx=cvs.getContext('2d');
+  const imgs=new Array(N); let loaded=0;
+  const loader=document.getElementById('loader');
+  const pad=n=>String(n).padStart(3,'0');
+  let cur=0, target=0, last=-1;
+
+  function size(){
+    const dpr=Math.min(window.devicePixelRatio||1,2);
+    cvs.width=Math.round(innerWidth*dpr); cvs.height=Math.round(innerHeight*dpr);
+    last=-1; draw(cur);
+  }
+  function get(i){ i=Math.max(0,Math.min(N-1,i)); for(let d=0;d<N;d++){ if(imgs[i-d]&&imgs[i-d].ok) return imgs[i-d]; if(imgs[i+d]&&imgs[i+d].ok) return imgs[i+d]; } return null; }
+  // phones: film fills the top ~60% (face stays clear), text owns the bottom
+  const phone=()=>innerWidth<=820 && innerHeight>innerWidth;
+  function rect(){
+    const cw=cvs.width,ch=phone()?Math.round(cvs.height*0.62):cvs.height, s=Math.max(cw/1280,ch/720), w=1280*s, h=720*s;
+    return {x:(cw-w)/2,y:(ch-h)/2,w,h};
+  }
+  function paint(im,a){
+    const r=rect(); ctx.globalAlpha=a; ctx.drawImage(im,r.x,r.y,r.w,r.h); ctx.globalAlpha=1;
+  }
+  // ---- "AK" brush-painted BEHIND Arun in the raised-hand pose; holds while the blue lightning strikes (7.5s–9.95s) ----
+  // person mattes (cut out once with GrabCut) let the face sit in front of the letters
+  const M0=1, M1=0, mats={};   // AK layer switched off
+  for(let i=M0;i<=M1;i++){ const m=new Image(); m.onload=()=>{m.ok=true; last=-1;}; m.src='matte/m_'+pad(i)+'.webp'; mats[i]=m; }
+  const off=document.createElement('canvas'), oc=off.getContext('2d');
+  // Arun's own painted A and K (white brush + red splatter), cut from his reference design
+  const LA=new Image(), LK=new Image();
+  [LA,LK].forEach((im,k)=>{ im.onload=()=>{im.ok=true; last=-1;}; im.src='ak/'+(k?'K':'A')+'.webp'; });
+  const BRUSH='"Harukaze","Kaushan Script",cursive';
+  const jag=[...Array(28)].map(()=>Math.random());
+  const clamp=v=>Math.max(0,Math.min(1,v)), ease=v=>1-Math.pow(1-v,3);
+  function akLayer(f){
+    // 7.5s → 8.5s: A and K slide out from behind him to either side; fade away as the bolt hits the racket
+    const t=f/(N-1)*DUR, rv=clamp((t-7.5)/1.0), out=clamp((t-9.55)/0.4);
+    if(rv<=0||out>=1||!LA.ok||!LK.ok) return;
+    const r=rect(), W=cvs.width, H=cvs.height, e=ease(rv);
+    if(off.width!==W||off.height!==H){ off.width=W; off.height=H; }
+    ctx.save(); ctx.globalAlpha=(1-out)*Math.min(1,rv*2.2);
+    const hgt=r.h*0.49, cx=r.x+r.w*0.485, cy=r.y+r.h*0.53;
+    const zap=clamp((t-8.1)/0.3);
+    ctx.shadowColor=zap>0?'rgba(61,169,255,'+((0.4+0.4*Math.random())*zap).toFixed(2)+')':'rgba(255,46,58,.45)'; ctx.shadowBlur=hgt*(0.05+0.05*zap);
+    for(const [im,dir,fx] of [[LA,-1,0.255],[LK,1,0.725]]){
+      const w=hgt*im.naturalWidth/im.naturalHeight, s=0.72+0.28*e;
+      const x=cx+(r.x+r.w*fx-cx)*e, y=cy+(1-e)*r.h*0.02;     // starts tucked behind him, ends at its side
+      ctx.save(); ctx.translate(x,y); ctx.rotate(dir*(1-e)*0.12); ctx.scale(s,s);
+      ctx.drawImage(im,-w/2,-hgt/2,w,hgt); ctx.restore();
+    }
+    ctx.restore();
+    // put Arun (and the lightning) back in front of the letters
+    const i=Math.round(f), m=mats[i], im=get(i);
+    if(m&&m.ok&&im){
+      oc.clearRect(0,0,W,H); oc.drawImage(im,r.x,r.y,r.w,r.h);
+      oc.globalCompositeOperation='destination-in'; oc.drawImage(m,r.x,r.y,r.w,r.h); oc.globalCompositeOperation='source-over';
+      ctx.drawImage(off,0,0);
+    }
+  }
+
+  if(document.fonts&&document.fonts.load){ Promise.all([document.fonts.load('100px "Harukaze"'),document.fonts.load('100px "Kaushan Script"')]).then(()=>{last=-1;},()=>{}); }
+  function fade(){
+    if(!phone()) return; const H=cvs.height, y=Math.round(H*0.62);
+    const g=ctx.createLinearGradient(0,y-H*0.14,0,y); g.addColorStop(0,'rgba(14,10,13,0)'); g.addColorStop(1,'rgba(14,10,13,1)');
+    ctx.fillStyle=g; ctx.fillRect(0,y-H*0.14,cvs.width,H*0.14); ctx.fillStyle='#0E0A0D'; ctx.fillRect(0,y,cvs.width,H-y);
+  }
+  // blend neighbouring frames so 6 fps source scrubs smoothly
+  function draw(f){
+    const i=Math.floor(f), k=f-i, a=get(i), b=get(i+1);
+    if(!a) return; paint(a,1); if(b&&b!==a&&k>0.02) paint(b,k); fade(); last=f;
+  }
+  function load(i){
+    const im=new Image(); im.decoding='async';
+    im.onload=()=>{im.ok=true; loaded++; last=-1;};
+    im.onerror=()=>{loaded++;};
+    im.src='web/f_'+pad(i)+'.webp'; imgs[i]=im;
+  }
+  load(0);
+  const order=[]; for(const step of [20,10,5,2,1]) for(let i=0;i<N;i+=step) if(!order.includes(i)) order.push(i);
+  let qi=0; (function pump(){ for(let k=0;k<6&&qi<order.length;k++) load(order[qi++]); if(qi<order.length) setTimeout(pump,40); })();
+
+  const chs=[...document.querySelectorAll('.ch')];
+  const shades={l:document.querySelector('.shade.l'),r:document.querySelector('.shade.r'),b:document.querySelector('.shade.b')};
+  const navs=[...document.querySelectorAll('.bar nav a')];
+  const tc=document.getElementById('tc'), bar=document.getElementById('bar'), cn=document.getElementById('cn');
+  const maxScroll=()=>Math.max(1,document.documentElement.scrollHeight-innerHeight);
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let active=-2;
+
+  function setChapter(t){
+    let idx=-1; chs.forEach((c,i)=>{ if(t>=+c.dataset.in && t<+c.dataset.out) idx=i; });
+    if(idx===active) return; active=idx;
+    chs.forEach((c,i)=>c.classList.toggle('on',i===idx));
+    const sh=idx>=0?chs[idx].dataset.shade:null;
+    for(const k in shades) shades[k].classList.toggle('on',k===sh);
+    document.body.classList.toggle('volt',idx>=0&&chs[idx].hasAttribute('data-volt'));
+    navs.forEach(a=>a.classList.toggle('on',+a.dataset.go===idx));
+    if(idx>=0) cn.textContent=String(idx+1).padStart(2,'0')+' / 07';
+  }
+  // autoplay draws the real 30 fps video; manual scrolling scrubs the still frames
+  const vid=document.getElementById('vid'); let vmode=false;
+  function tick(){
+    const p=Math.min(1,Math.max(0,scrollY/maxScroll()));
+    target=p*(N-1);
+    if(vmode){ cur=target; paint(vid,1); fade(); last=-1; }
+    else{
+      cur = reduce ? target : cur+(target-cur)*0.2;
+      if(Math.abs(cur-last)>0.004) draw(cur);
+    }
+    const t=cur/(N-1)*DUR;
+    setChapter(t);
+    tc.textContent='00:'+String(Math.floor(t)).padStart(2,'0');
+    bar.style.width=(p*100).toFixed(2)+'%';
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',size); size(); requestAnimationFrame(tick);
+
+  // nav: jump to the middle of a chapter's time window
+  document.querySelectorAll('[data-go]').forEach(a=>a.addEventListener('click',e=>{
+    e.preventDefault(); stopAuto(); const c=chs[+a.dataset.go];
+    const t=+a.dataset.go===0?0:(+a.dataset.go===chs.length-1?DUR:(+c.dataset.in+0.6));
+    scrollTo({top:t/DUR*maxScroll(),behavior:reduce?'auto':'smooth'});
+  }));
+
+
+  // ---------- autoplay ----------
+  const ctl=document.getElementById('ctl'), ctlIco=document.getElementById('ctlIco'), ctlTxt=document.getElementById('ctlTxt');
+  const IC_PLAY='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 4l15 8-15 8z"/></svg>';
+  const IC_PAUSE='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>';
+  const IC_AGAIN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M4 12a8 8 0 1 0 3-6.2M4 4v5h5"/></svg>';
+  // no loading screen: start playing as soon as the first frames are in
+  (function go(){ if(imgs[0]&&imgs[0].ok&&loaded>=10){ ctl.hidden=false; setTimeout(()=>{ if(scrollY<5) startAuto(); else setCtl(); },500); } else setTimeout(go,80); })();
+
+  // autoplay: plays the real video at normal speed, pausing briefly on each chapter so it can be read
+  const HOLD=1.3;
+  const holds=chs.map(c=>Math.min(29.6,(+c.dataset.in)+Math.min(1.2,((+c.dataset.out)-(+c.dataset.in))/2))).sort((a,b)=>a-b);
+  let auto=false, vt=0, holdLeft=0, nextHold=0, lastT=0, useVid=false;
+  function setCtl(){ const end=scrollY>=maxScroll()-2;
+    ctlIco.innerHTML=auto?IC_PAUSE:(end?IC_AGAIN:IC_PLAY); ctlTxt.textContent=auto?'Pause':(end?'Replay':'Auto play'); }
+  function startAuto(){
+    if(scrollY>=maxScroll()-2) scrollTo(0,0);
+    vt=Math.min(1,scrollY/maxScroll())*DUR; nextHold=holds.findIndex(h=>h>vt+0.05); if(nextHold<0) nextHold=holds.length;
+    holdLeft=0; auto=true; lastT=performance.now(); setCtl();
+    useVid = vid.readyState>=2;
+    if(useVid){
+      try{ vid.currentTime=vt; }catch(_){}
+      const pr=vid.play(); vmode=true;
+      if(pr&&pr.catch) pr.catch(()=>{ useVid=false; vmode=false; });
+    }
+    requestAnimationFrame(step);
+  }
+  function stopAuto(){ if(!auto) return; auto=false; vid.pause(); vmode=false; last=-1; setCtl(); }
+  function step(now){
+    if(!auto) return;
+    const dt=Math.min(.05,(now-lastT)/1000); lastT=now;
+    // video finished buffering mid-run → hand over to it
+    if(!useVid && vid.readyState>=2 && holdLeft<=0){ useVid=true; vmode=true; try{vid.currentTime=vt;}catch(_){} vid.play().catch(()=>{ useVid=false; vmode=false; }); }
+    if(holdLeft>0){ holdLeft-=dt; if(holdLeft<=0&&useVid) vid.play().catch(()=>{}); }
+    else{
+      vt = useVid ? vid.currentTime : vt+dt;
+      if(nextHold<holds.length && vt>=holds[nextHold]){ holdLeft=HOLD; nextHold++; if(useVid) vid.pause(); }
+    }
+    if(vt>=DUR-0.05||(useVid&&vid.ended)){ vt=DUR; scrollTo(0,maxScroll()); auto=false; vid.pause(); vmode=false; last=-1; setCtl(); return; }
+    scrollTo(0,vt/DUR*maxScroll());
+    requestAnimationFrame(step);
+  }
+  ctl.addEventListener('click',()=>{ auto?stopAuto():startAuto(); });
+  // any manual input hands control back to the visitor
+  ['wheel','touchstart','keydown'].forEach(ev=>addEventListener(ev,e=>{ if(ev==='keydown'&&(e.target===ctl||e.key==='Tab')) return; stopAuto(); },{passive:true}));
+  addEventListener('scroll',()=>{ if(!auto) setCtl(); },{passive:true});
+
+  // ---------- interactive type + cursor ----------
+  const fine=matchMedia('(pointer:fine)').matches && !reduce;
+  // split headings into letters (words kept unbroken) so each letter's weight can follow the cursor
+  const letters=[];
+  function split(node){
+    [...node.childNodes].forEach(n=>{
+      if(n.nodeType===3){
+        const frag=document.createDocumentFragment();
+        n.textContent.split(/(\s+)/).forEach(w=>{
+          if(!w) return; if(/^\s+$/.test(w)){ frag.appendChild(document.createTextNode(w)); return; }
+          const wd=document.createElement('span'); wd.className='wd';
+          const hd=node.closest('h1,h2');
+          for(const c of w){ const l=document.createElement('span'); l.className='lt'; l.textContent=c;
+            const a=Math.random()*Math.PI*2, d=40+Math.random()*120; hd._n=(hd._n||0)+1;
+            l.style.cssText='--r:'+((Math.random()-.5)*14).toFixed(1)+'deg;--i:'+hd._n;
+            wd.appendChild(l); letters.push(l); }
+          frag.appendChild(wd);
+        });
+        n.replaceWith(frag);
+      } else if(n.nodeType===1) split(n);
+    });
+  }
+  {
+    document.querySelectorAll('main h1, main h2').forEach(h=>{ h.setAttribute('aria-label',h.textContent.replace(/\s+/g,' ').trim()); split(h); h.querySelectorAll('.wd').forEach(w=>w.setAttribute('aria-hidden','true')); });
+  }
+  // replay the entrance for whatever scene is already showing
+  if(active>=0){ const c=chs[active]; c.classList.remove('on'); requestAnimationFrame(()=>requestAnimationFrame(()=>c.classList.add('on'))); }
+  // magnetic headings: letters near the cursor drift away from it, then spring back
+  let onMove,onDown,frame;
+  {
+    const R=110, PUSH=22; let pts=[], forHeading=null;
+    frame=()=>{
+      const h=active>=0?chs[active].querySelector('h1,h2'):null;
+      if(h!==forHeading){ pts.forEach(p=>p.el.style.translate=''); forHeading=h; pts=h?[...h.querySelectorAll('.lt')].map(el=>({el,x:0,y:0})):[]; }
+      let near=false;
+      for(const p of pts){
+        const r=p.el.getBoundingClientRect(), cx=r.left+r.width/2-p.x, cy=r.top+r.height/2-p.y, dx=cx-mx, dy=cy-my, d=Math.hypot(dx,dy);
+        let tx=0,ty=0; if(d<R&&d>0.1){ const f=Math.pow(1-d/R,2)*PUSH; tx=dx/d*f; ty=dy/d*f; near=true; }
+        p.x+=(tx-p.x)*.18; p.y+=(ty-p.y)*.18;
+        p.el.style.translate=(Math.abs(p.x)<.05&&Math.abs(p.y)<.05)?'':p.x.toFixed(2)+'px '+p.y.toFixed(2)+'px';
+      }
+      cdot.classList.toggle('near',near);
+    };
+  }
+  // ---------- cursor ----------
+  const cdot=document.getElementById('cdot');
+  const mags=[...document.querySelectorAll('.hire,.btn,.ctl,.bar nav a,.mark')];
+  let mx=-99,my=-99;
+  if(fine){
+    document.body.classList.add('alive');
+    const aim=el=>cdot.classList.toggle('hot',!!(el&&el.closest('a,button')));
+    addEventListener('pointermove',e=>{ mx=e.clientX; my=e.clientY; cdot.classList.add('on'); aim(e.target); onMove&&onMove(e); },{passive:true});
+    setInterval(()=>{ if(mx>0) aim(document.elementFromPoint(mx,my)); },250);
+    document.addEventListener('pointerleave',()=>cdot.classList.remove('on'));
+    addEventListener('pointerdown',e=>{ cdot.classList.add('down'); onDown&&onDown(e); });
+    addEventListener('pointerup',()=>cdot.classList.remove('down'));
+    mags.forEach(m=>{
+      m.addEventListener('pointermove',e=>{ const r=m.getBoundingClientRect(); m.style.transform='translate('+(e.clientX-(r.left+r.width/2))*.25+'px,'+(e.clientY-(r.top+r.height/2))*.3+'px)'; });
+      m.addEventListener('pointerleave',()=>{ m.style.transform=''; });
+    });
+    (function loop(){ cdot.style.transform='translate('+mx+'px,'+my+'px)'; frame&&frame(); requestAnimationFrame(loop); })();
+  }
+
+  // glass cards: spotlight follows the cursor, card tilts toward it
+  if(fine) document.querySelectorAll('.gc').forEach(c=>{
+    c.addEventListener('pointermove',e=>{ const r=c.getBoundingClientRect(), x=(e.clientX-r.left)/r.width, y=(e.clientY-r.top)/r.height;
+      c.style.setProperty('--mx',(x*100)+'%'); c.style.setProperty('--my',(y*100)+'%');
+      c.style.transform='perspective(700px) rotateX('+((.5-y)*9).toFixed(2)+'deg) rotateY('+((x-.5)*11).toFixed(2)+'deg) scale(1.02)'; });
+    c.addEventListener('pointerleave',()=>{ c.style.transform=''; });
+  });
+  document.getElementById('copy').addEventListener('click',e=>{
+    const b=e.currentTarget, t=document.getElementById('addr').textContent;
+    const done=()=>{b.textContent='Copied'; setTimeout(()=>b.textContent='Copy',1600);};
+    try{ navigator.clipboard.writeText(t).then(done,()=>{ const r=document.createRange(); r.selectNodeContents(document.getElementById('addr')); const s=getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent='Press Ctrl+C'; }); }catch(_){}
+  });
+})();
+</script>
+</body>
+</html>
